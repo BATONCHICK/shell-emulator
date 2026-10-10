@@ -27,28 +27,88 @@
 - остановка скрипта при первой ошибке;
 - выполнение `exit` из стартового скрипта.
 
+### Этап 3
+
+- загрузка виртуальной файловой системы из директории;
+- рекурсивное чтение файлов и каталогов;
+- хранение структуры VFS полностью в оперативной памяти;
+- хранение содержимого файлов в памяти;
+- исходная директория на диске не изменяется;
+- обработка некорректного пути VFS;
+- тестовые VFS различной структуры;
+- поддержка VFS совместно со стартовыми скриптами.
+
 ## Запуск
 
+macOS/Linux:
+
 ```bash
-./run.sh --vfs ./test_vfs --script ./start.txt
+./run.sh \
+    --vfs ./vfs_examples/nested \
+    --script ./start_stage3.txt
 ```
 
 Windows:
 
 ```bat
-run.bat --vfs .\test_vfs --script .\start.txt
+run.bat ^
+    --vfs .\vfs_examples\nested ^
+    --script .\start_stage3.txt
+```
+
+Сборка проекта не требуется.
+
+Автоматические тесты на текущем этапе не предусмотрены.
+
+## Проверка этапа 3
+
+Минимальная VFS:
+
+```bash
+./scripts/test_vfs_minimal.sh
+```
+
+VFS с несколькими файлами:
+
+```bash
+./scripts/test_vfs_files.sh
+```
+
+VFS с вложенной структурой:
+
+```bash
+./scripts/test_vfs_nested.sh
+```
+
+Проверка некорректного пути:
+
+```bash
+./scripts/test_vfs_invalid.sh
+```
+
+Проверка стартового скрипта:
+
+```bash
+./scripts/test_stage3_script.sh
+```
+
+Проверка остановки при ошибке:
+
+```bash
+./scripts/test_stage3_error.sh
 ```
 
 ## Пример
 
 ```text
-VFS: ./test_vfs
-Script: ./start.txt
+VFS: ./vfs_examples/nested
+Script: ./start_stage3.txt
+VFS загружена: каталогов 6, файлов 3
 VFS:/$ ls
 ls []
-VFS:/$ cd /home
-cd ['/home']
+VFS:/$ cd $HOME
+cd ['/Users/user']
 VFS:/$ ls /test
 ls ['/test']
-VFS:/$
+VFS:/$ exit
 ```

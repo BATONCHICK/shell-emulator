@@ -1,9 +1,11 @@
 import argparse
 import os
 
+from vfs import VirtualFileSystem
+
 
 def parse_arguments():
-    """Разбирает аргументы командной строки эмулятора"""
+    """Разбирает аргументы командной строки эмулятора."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--vfs")
     parser.add_argument("--script")
@@ -11,7 +13,7 @@ def parse_arguments():
 
 
 def execute_command(command):
-    """Выполняет одну команду эмулятора"""
+    """Выполняет одну команду эмулятора."""
     command = os.path.expandvars(command)
     parts = command.split()
 
@@ -37,9 +39,13 @@ def execute_command(command):
 
 
 def run_script(path):
-    """Выполняет команды из стартового скрипта"""
+    """Выполняет команды из стартового скрипта."""
     try:
-        with open(path, "r", encoding="utf-8") as file:
+        with open(
+            path,
+            "r",
+            encoding="utf-8",
+        ) as file:
             for line in file:
                 line = line.strip()
 
@@ -53,14 +59,17 @@ def run_script(path):
                     return result
 
     except OSError as error:
-        print("Ошибка стартового скрипта:", error)
+        print(
+            "Ошибка стартового скрипта:",
+            error,
+        )
         return "error"
 
     return "ok"
 
 
 def run_shell():
-    """Запускает эмулятор в интерактивном режиме"""
+    """Запускает эмулятор в интерактивном режиме."""
     while True:
         command = input("VFS:/$ ")
         result = execute_command(command)
@@ -69,21 +78,52 @@ def run_shell():
             break
 
 
+def load_vfs(path):
+    """Загружает VFS и выводит информацию о ней."""
+    try:
+        vfs = VirtualFileSystem.from_directory(path)
+    except (OSError, ValueError) as error:
+        print(
+            "Ошибка VFS:",
+            error,
+        )
+        return None
+
+    directories, files = vfs.stats()
+
+    print(
+        f"VFS загружена: каталогов {directories}, "
+        f"файлов {files}"
+    )
+
+    return vfs
+
+
 def main():
-    """Запускает эмулятор"""
+    """Запускает эмулятор."""
     args = parse_arguments()
 
     print("VFS:", args.vfs)
     print("Script:", args.script)
 
+    vfs = None
+
+    if args.vfs:
+        vfs = load_vfs(args.vfs)
+
+        if vfs is None:
+            return 1
+
     if args.script:
         result = run_script(args.script)
 
         if result == "exit":
-            return
+            return 0
 
     run_shell()
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
