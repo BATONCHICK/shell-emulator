@@ -5,6 +5,17 @@ from datetime import datetime
 from vfs import VirtualFileSystem
 
 
+MAX_PATH_ARGUMENTS = 1
+FIND_NAME_ARGUMENTS = 1
+FIND_PATH_NAME_ARGUMENTS = 2
+FIND_OPTION_ARGUMENTS = 3
+
+EXIT_SUCCESS = 0
+EXIT_FAILURE = 1
+
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
 def parse_arguments():
     """Разбирает аргументы командной строки эмулятора."""
     parser = argparse.ArgumentParser()
@@ -33,7 +44,7 @@ def command_ls(arguments, vfs):
     if not require_vfs(vfs):
         return "error"
 
-    if len(arguments) > 1:
+    if len(arguments) > MAX_PATH_ARGUMENTS:
         print("Ошибка: ls принимает не более одного пути")
         return "error"
 
@@ -53,7 +64,7 @@ def command_cd(arguments, vfs):
     if not require_vfs(vfs):
         return "error"
 
-    if len(arguments) > 1:
+    if len(arguments) > MAX_PATH_ARGUMENTS:
         print("Ошибка: cd принимает не более одного пути")
         return "error"
 
@@ -69,15 +80,14 @@ def command_cd(arguments, vfs):
 
 
 def parse_find_arguments(arguments):
-    """Разбирает аргументы команды find."""
-    if len(arguments) == 1:
+    if len(arguments) == FIND_NAME_ARGUMENTS:
         return ".", arguments[0]
 
-    if len(arguments) == 2:
+    if len(arguments) == FIND_PATH_NAME_ARGUMENTS:
         return arguments[0], arguments[1]
 
     if (
-        len(arguments) == 3
+        len(arguments) == FIND_OPTION_ARGUMENTS
         and arguments[1] == "-name"
     ):
         return arguments[0], arguments[2]
@@ -114,7 +124,7 @@ def command_date(arguments):
 
     print(
         datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
+            DATE_FORMAT
         )
     )
     return "ok"
@@ -167,6 +177,7 @@ def run_script(path, vfs):
                 print(
                     f"{get_prompt(vfs)}{line}"
                 )
+
                 result = execute_command(
                     line,
                     vfs,
@@ -191,6 +202,7 @@ def run_shell(vfs):
         command = input(
             get_prompt(vfs)
         )
+
         result = execute_command(
             command,
             vfs,
@@ -207,7 +219,10 @@ def load_vfs(path):
             path
         )
     except (OSError, ValueError) as error:
-        print("Ошибка VFS:", error)
+        print(
+            "Ошибка VFS:",
+            error,
+        )
         return None
 
     directories, files = vfs.stats()
@@ -232,7 +247,7 @@ def main():
     ) if args.vfs else None
 
     if args.vfs and vfs is None:
-        return 1
+        return EXIT_FAILURE
 
     if args.script:
         result = run_script(
@@ -241,11 +256,11 @@ def main():
         )
 
         if result == "exit":
-            return 0
+            return EXIT_SUCCESS
 
     run_shell(vfs)
 
-    return 0
+    return EXIT_SUCCESS
 
 
 if __name__ == "__main__":
