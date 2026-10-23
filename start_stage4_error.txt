@@ -1,0 +1,6 @@
+ls /
+cd /home/user
+find / -name notes.txt
+date
+ls /missing
+date

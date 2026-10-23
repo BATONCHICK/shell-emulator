@@ -1,0 +1,12 @@
+ls
+ls /
+cd /home
+ls
+cd user
+ls .
+cd ..
+find notes.txt
+find / notes.txt
+find / -name readme.txt
+date
+exit
